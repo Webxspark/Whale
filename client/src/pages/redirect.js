@@ -12,7 +12,7 @@ const Redirect = () => {
         if (!currentUser.admin) {
             navigate('/contributors');
         } else {
-            navigate('/admin');
+            navigate('/tasks');
         }
     }, [])
 

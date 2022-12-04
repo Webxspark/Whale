@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { ethers } from "ethers";
+import Web3 from 'web3';
 
 export const WalletContext = createContext();
 
@@ -29,7 +30,28 @@ export const WalletProvider = ({ children }) => {
         try {
             if (!window.ethereum) return alert("Please install metamask");
             const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [currentAddress, 'latest'] });
-            setCurrentBalance(ethers.utils.formatEther(balance));
+            setCurrentBalance(Number(ethers.utils.formatEther(balance)).toFixed(2));
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getWTKBalance = async () => {
+        try {
+            let tokABI = [
+                {
+                    "constant": true,
+                    "inputs": [{ "name": "_owner", "type": "address" }],
+                    "name": "balanceOf",
+                    "outputs": [{ "name": "balance", "type": "uint256" }],
+                    "type": "function"
+                },
+            ];
+            let wtkAddress = "0xA1C1f49dB1ACE156f4C4efc6fBafbc87379E8fCf";
+            let web3 = new Web3(window.ethereum);
+            let contract = new web3.eth.Contract(tokABI, wtkAddress);
+            let bal = await contract.methods.balanceOf(currentAddress).call();
+            return bal / 10 ** 18;
         } catch (error) {
             console.log(error);
         }
@@ -58,7 +80,8 @@ export const WalletProvider = ({ children }) => {
             getAccountBalance,
             currentAddress,
             currentBalance,
-            setCurrentAddress
+            setCurrentAddress,
+            getWTKBalance
         }}>
             {children}
         </WalletContext.Provider>
